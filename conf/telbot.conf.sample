@@ -1,0 +1,18 @@
+[telegram]
+authorized_ids=xxxx
+api_id=1234
+api_hash=abcdsseeeeeeeeeeeee
+session=session1
+## only support socks5 proxy
+use_proxy=1
+proxy_url=127.0.0.1:1080 
+
+[local]
+storage_path=media
+
+[messagefilter]
+downmchatid=123456789
+
+[log]
+logfile=./logs/telworkwrapper.log
+
