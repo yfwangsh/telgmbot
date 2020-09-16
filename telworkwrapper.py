@@ -33,7 +33,6 @@ class telbotwrapper():
         self.session = self.conf.getConf('telegram', 'session')
         self.storage = self.conf.getConf('local', 'storage_path')
         useproxy = self.conf.getConf('telegram', 'use_proxy')
-
         proxy = None
         if useproxy == '1':
             proxy = self.getproxy(self.conf.getConf('telegram', 'proxy_url'))            
