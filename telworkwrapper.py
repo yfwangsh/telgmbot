@@ -15,8 +15,13 @@ from lib.common import mylogging
 
 
 def filterChat(e):
-    if e.chat.id == int(telbotwrapper.conf.getConf('messagefilter','downmchatid')):
+    targetchat = int(telbotwrapper.conf.getConf('messagefilter','downmchatid'))
+    if e.chat is not None and e.chat.id == targetchat:
         return True
+    '''
+    if abs(e.chat_id) == targetchat:
+        return True
+    '''
     return False
 
 def channelfilter(e):
@@ -124,11 +129,13 @@ class telbotwrapper():
     @events.register(events.NewMessage(func=filterChat))
     async def downloadhandler(self, event):
         dfile = event.message.file
-        filename = dfile.name
-        if filename is None:
-            filename = dfile.id + dfile.ext
-        path = await self.client.download_media(event.message, self.storage, progress_callback=self.callback)
-        #raise StopPropagation
+        if dfile is not None:
+            filename = dfile.name
+            if filename is None:
+                filename = dfile.id + dfile.ext
+            path = await self.client.download_media(event.message, self.storage, progress_callback=self.callback) 
+            self.log.debug('%s download to %s'%(filename, path))
+            raise StopPropagation
     def loadcmdworker(self, isreload=False):
         #cmdmodpath = telbotwrapper.conf.getConf('plugin', 'cmdpath', 'scripts')
         if isreload:
