@@ -10,6 +10,10 @@ def doauthorize(context):
 async def process(context):
     cmdworkers = context.get('scripts')
     args = context.get('args')
+    if args is None:
+        helpkeys = cmdworkers.keys()
+        msg = 'all supported commands: \n' + '\n'.join(helpkeys)
+        return 0, msg 
     if len(args) > 0 and cmdworkers is not None:
         worker = cmdworkers.get(args[0])
         if worker is not None:
