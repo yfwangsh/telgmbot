@@ -12,6 +12,7 @@ storage_path=media
 
 [messagefilter]
 downmchatid=123456789
+botchatid=234567891
 
 [log]
 logfile=./logs/telworkwrapper.log

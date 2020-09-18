@@ -25,7 +25,8 @@ def filterChat(e):
     return False
 
 def channelfilter(e):
-    if e.chat.id == int(telbotwrapper.conf.getConf('messagefilter','botchatid')):
+    targetchat = int(telbotwrapper.conf.getConf('messagefilter','botchatid'))
+    if e.chat is not None and e.chat.id == targetchat:
         return True
     return False
     
