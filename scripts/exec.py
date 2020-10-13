@@ -71,7 +71,7 @@ def runcmd(cmds):
 
         
 if __name__ == '__main__':
-    cmdarglist = ['./script/shell/test/sh']
+    cmdarglist = ['./shell/test/sh']
     _, out, _ = runcmd(cmdarglist)
     print(out)
     print('------------------------------------------------------')
