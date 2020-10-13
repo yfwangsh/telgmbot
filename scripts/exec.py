@@ -51,7 +51,7 @@ async def process(context):
                     if type(msg) == bytes:
                         msg = msg.decode()
                         errmsg = errmsg.decode()
-                except UnicodeDecodeError as e:
+                except UnicodeDecodeError:
                     try:
                         if type(msg) == bytes:
                             msg = msg.decode('gb2312')
@@ -62,16 +62,16 @@ async def process(context):
                     print(errmsg)
                 return output[0], msg
 
-def runcmd(cmds):
+def runcmd(cmds, isshell=False):
     # Popen call wrapper.return (code, stdout, stderr)
-    child = subprocess.Popen(args=cmds, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    child = subprocess.Popen(args=cmds, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=isshell)
     out, err = child.communicate()
     ret = child.wait()
     return (ret, out, err)
 
         
 if __name__ == '__main__':
-    cmdarglist = ['./shell/test/sh']
+    cmdarglist = ['./shell/test.sh']
     _, out, _ = runcmd(cmdarglist)
     print(out)
     print('------------------------------------------------------')
