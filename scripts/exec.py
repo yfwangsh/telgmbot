@@ -52,8 +52,12 @@ async def process(context):
                         msg = msg.decode()
                         errmsg = errmsg.decode()
                 except UnicodeDecodeError as e:
-                    msg = msg.decode('gb2312')
-                    errmsg = errmsg.decode('gb2312')
+                    try:
+                        if type(msg) == bytes:
+                            msg = msg.decode('gb2312')
+                            errmsg = errmsg.decode('gb2312')
+                    except:
+                        pass
                 if output[0] != 0:
                     print(errmsg)
                 return output[0], msg
@@ -67,11 +71,11 @@ def runcmd(cmds):
 
         
 if __name__ == '__main__':
-    cmdarglist = ['dir']
+    cmdarglist = ['./script/shell/test/sh']
     _, out, _ = runcmd(cmdarglist)
     print(out)
     print('------------------------------------------------------')
-    cmdarglist.extend(['/w'])
+    cmdarglist.extend(['a','b'])
     _, out, _ = runcmd(cmdarglist)
     print(out)
     
