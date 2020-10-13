@@ -19,7 +19,7 @@ def help():
         script_name_origin = os.path.basename(_script)
         script_name = script_name_origin.replace('.sh', '')
         cmdlist.append(script_name)
-    return ' '.join(cmdlist)
+    return 'exec support commands: \n'+'\n'.join(cmdlist)
 
 def doauthorize(context):
     authfunc = context.get('authorfunc')
@@ -33,14 +33,18 @@ async def process(context):
         cmdname = args[0]
         for _script in glob.glob('scripts/shell/*.sh'):
             #print(_script)
-            cmdstr = _script
+            #cmdstr = _script
             script_name_origin = os.path.basename(_script)
             script_name = script_name_origin.replace('.sh', '')
             if script_name == cmdname:
+                pargs = [_script]
+                    
+                
                 if len(args) > 1:
-                    cmdstr = _script + ' ' + ' '.join(args[1:])
+                    pargs.extend(args[1:])
+                    #cmdstr = _script + ' ' + ' '.join(args[1:])
                 #print(cmdstr)
-                output = runcmd(cmdstr)
+                output = runcmd(pargs)
                 msg = output[1]
                 errmsg = output[2]
                 try:
@@ -54,11 +58,20 @@ async def process(context):
                     print(errmsg)
                 return output[0], msg
 
-def runcmd(cmdstr):
+def runcmd(cmds):
     # Popen call wrapper.return (code, stdout, stderr)
-    child = subprocess.Popen(cmdstr, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    child = subprocess.Popen(args=cmds, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = child.communicate()
     ret = child.wait()
     return (ret, out, err)
 
         
+if __name__ == '__main__':
+    cmdarglist = ['dir']
+    _, out, _ = runcmd(cmdarglist)
+    print(out)
+    print('------------------------------------------------------')
+    cmdarglist.extend(['/w'])
+    _, out, _ = runcmd(cmdarglist)
+    print(out)
+    

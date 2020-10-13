@@ -137,6 +137,7 @@ class telbotwrapper():
             path = await self.client.download_media(event.message, self.storage, progress_callback=self.callback) 
             self.log.debug('%s download to %s'%(filename, path))
             raise StopPropagation
+        
     def loadcmdworker(self, isreload=False):
         #cmdmodpath = telbotwrapper.conf.getConf('plugin', 'cmdpath', 'scripts')
         if isreload:
