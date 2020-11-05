@@ -2,13 +2,19 @@
 authorized_ids=xxxx
 api_id=1234
 api_hash=abcdsseeeeeeeeeeeee
+bottoken=1234566:93eriowuiewrwe
 session=session1
 ## only support socks5 proxy
 use_proxy=1
 proxy_url=127.0.0.1:1080 
 
+[server]
+instanceid=devlocal
+role=primary
+
 [local]
 storage_path=media
+mlistcmds=:exec extract|:exec fileup
 
 [messagefilter]
 downmchatid=123456789
