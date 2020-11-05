@@ -28,6 +28,8 @@ def doauthorize(context):
 
 async def process(context):
     #event = context.get('event')
+    result = {}
+    result['retexec'] = 0
     args = context.get('args')
     if args is not None and len(args) > 0:
         cmdname = args[0]
@@ -60,8 +62,21 @@ async def process(context):
                         pass
                 if output[0] != 0:
                     print(errmsg)
-                return output[0], msg
-
+                result['msg'] = msg
+                result['retexec'] = output[0]
+                result['errmsg'] = errmsg
+                #result['parse_mod'] = 0
+                return result
+                #return output[0], msg
+        
+        if cmdname == 'demo':
+            result['msg'] = dodemo()
+            return result
+        result['msg'] = '%s not supported by exec'%(cmdname)
+        return result
+    result['msg'] = help()
+    return result
+        
 def runcmd(cmds, isshell=False):
     # Popen call wrapper.return (code, stdout, stderr)
     child = subprocess.Popen(args=cmds, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=isshell)
@@ -69,7 +84,12 @@ def runcmd(cmds, isshell=False):
     ret = child.wait()
     return (ret, out, err)
 
-        
+def dodemo():
+    lines=''
+    with open('scripts/shell/demo') as f:
+        for ln in  f.readlines():
+           lines = lines + ln
+    return lines                 
 if __name__ == '__main__':
     cmdarglist = ['./shell/test.sh']
     _, out, _ = runcmd(cmdarglist)
