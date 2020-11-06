@@ -14,9 +14,9 @@ def doauthorize(context):
 
 async def process(context):
     result = {}
-    result['msg'] = 'mlist ok'
+    #result['msg'] = 'mlist ok'
     result['retexec'] = 0
-    result['buttons'] = listdir(context)
+    result['buttons'], result['msg'] = listdir(context)
     #result['parse_mod'] = 0
     return result
 
@@ -29,16 +29,19 @@ def listdir(context):
     conf = context['conf'] 
     mdir = conf.getConf('local', 'storage_path')
     lbs = []
+    msg = 'result:\n'
     flist = os.listdir(mdir)
     for fe in flist:
         size = os.path.getsize(mdir + '/' + fe)
-        txtmsg = '%s - (%f)'%(processtxt(fe), size/(1024*1024))
+        txtmsg = '%s - (%.2f)'%(processtxt(fe), size/(1024*1024))
+        msg = msg + '%s - (%.2f) \n'%(fe, size/(1024*1024))
         data = '%s %s'%(':show', hashlib.sha1(fe.encode('utf8')).hexdigest())
         lbs.append([Button.inline(txtmsg, data)])
         #lbs.append(Button.text(fe,  single_use=True, selective=True))
-    return lbs    
+    return lbs, msg    
 if __name__ == '__main__':
     rtext = ':abc /start wwww'
+    print('%.2f'%(2345/1000))
     print(rtext.find('/'))
     target = rtext[0:rtext.find('/')]
     cmdmsg = rtext[rtext.find('/'):]
