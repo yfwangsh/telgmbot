@@ -20,9 +20,10 @@ async def process(context):
     #result['parse_mod'] = 0
     return result
 
+SHOW_LEN=24
 def processtxt(text):
-    if len(text) > 64:
-        return text[0:60] + '...'
+    if len(text) > SHOW_LEN:
+        return text[0:SHOW_LEN-4] + '...'
     return text
 def listdir(context):
     conf = context['conf'] 
