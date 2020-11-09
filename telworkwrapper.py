@@ -83,7 +83,7 @@ class telbotwrapper():
     async def disconnect(self):
         await self.client.disconnect()
 
-    @events.register(events.NewMessage(from_users=1332743499))
+    @events.register(events.NewMessage(from_users=23456))
     async def debughandler(self, event):
         if event.chat.id == int(telbotwrapper.conf.getConf('messagefilter','downmchatid')):
             print( event.stringify())
