@@ -17,15 +17,23 @@ async def process(context):
     result = {}
     buttons = []
     args = context.get('args')
+    dwlist = context['downloadcache'] 
     resultmsg = 'invalid param for show'
     if args is not None and len(args) > 0:
         fileid = args[0]
         filename = getfilename(context, fileid)
-        resultmsg = 'available operation for %s'%(filename)
-        for supcmd in supportcmds:
-            btext = '%s %s'%(supcmd, filename)
-            buttons.append([Button.text(btext,single_use=True)])
-    buttons.append([Button.text('NOP',single_use=True)])
+        totalsize = dwlist.get(filename)
+        if totalsize is not None:            
+            mdir = conf.getConf('local', 'storage_path')
+            size = os.path.getsize(mdir + '/' + filename)
+            resultmsg = '%s downloading (%.2f K/%.2fK)'%(filename, size/1024, totalsize/1024)  
+        else:  
+            resultmsg = 'available operation for %s'%(filename)
+            for supcmd in supportcmds:
+                btext = '%s %s'%(supcmd, filename)
+                buttons.append([Button.text(btext,resize=True)])
+            if context.get('premsgkey') is not None:
+                result['delpremsg'] = True
     result['msg'] =resultmsg
     result['retexec'] = 0
     result['buttons'] = buttons
@@ -41,13 +49,13 @@ def getfilename(context, fileid):
     mdir = conf.getConf('local', 'storage_path')
     flist = os.listdir(mdir)
     for fe in flist:
-        srcfileid = hashlib.sha1(fe.encode('utf8')).hexdigest()
+        srcfileid = hashlib.md5(fe.encode('utf8')).hexdigest()
         if srcfileid == fileid:
             return fe
     return None    
 if __name__ == '__main__':
     hashtext = hashlib.sha1('abcdsklfjksldf'.encode('utf8')).hexdigest()
-    
+    print(100%12)
     hashbytes = hashtext.encode()
     print(hashbytes)
     print(hashbytes.decode())

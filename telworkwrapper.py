@@ -1,5 +1,5 @@
 from telethon import TelegramClient,sync
-import socks #如果你不需要通过代理连接Telegram，可以删掉这一行
+import socks
 from telethon.tl.types import InputMessagesFilterPhotos
 from telethon.tl.types import InputMessagesFilterVideo
 from telethon.events import StopPropagation
@@ -7,6 +7,9 @@ import asyncio
 import glob
 import sys
 import os
+import random
+import string
+
 import importlib
 from telethon import events
 from telethon import Button
@@ -15,6 +18,7 @@ from lib.common import mylogging
 
 DEFAULT_CMD_PREFIX = '/'
 CMD_PREFIX = ':'
+OB_PREFIX= '!'
 def filterChat(e):
     targetchat = int(telbotwrapper.conf.getConf('messagefilter','downmchatid'))
     if e.chat is not None and e.chat.id == targetchat:
@@ -53,6 +57,8 @@ class telbotwrapper():
         self.bottoken = telbotwrapper.conf.getConf('telegram', 'bottoken')
         self.role = telbotwrapper.conf.getConf('server', 'role')
         self.instanceid = telbotwrapper.conf.getConf('server', 'instanceid')
+        self.downloadcache = {}
+        self.msgcache = {}
         useproxy = telbotwrapper.conf.getConf('telegram', 'use_proxy')
         proxy = None
         if useproxy == '1':
@@ -63,9 +69,11 @@ class telbotwrapper():
             self.client.add_event_handler(self.cmdhandler)
             self.client.add_event_handler(self.downloadhandler)
             self.client.add_event_handler(self.callbackhandler)
-            self.client.add_event_handler(self.innercmdhandler)
         else:
-            self.client.add_event_handler(self.debughandler)
+            #self.client.add_event_handler(self.debughandler)
+            self.client.add_event_handler(self.innercmdhandler)
+            self.client.add_event_handler(self.downloadhandler)
+
         self.cmdworkers = {}
 
     async def start(self):
@@ -93,6 +101,8 @@ class telbotwrapper():
                 if event.from_id == effid or event.sender_id == effid:
                     return True
             except Exception:
+                if event.sender_id == effid:
+                    return True
                 pass
         return False
     def buildcontext(self, event, content, callbackquery=False):
@@ -105,16 +115,26 @@ class telbotwrapper():
         context['stopfunc'] = self.disconnect
         context['cmd'] = None
         context['args'] = None
+        context['downloadcache'] = self.downloadcache
+        context['msgkey']  = ''.join(random.sample(string.ascii_letters + string.digits, 24))
+
         update = ''
         if callbackquery:
             update = content.decode()
         else:
             update = content
-        if update is not None and update.startswith(CMD_PREFIX): 
+        if update is None:
+            return context
+        if update.startswith(CMD_PREFIX): 
             args = update[1:].split(' ')
             context['cmd'] = args[0].lower()
             if len(args) > 1:
                 context['args'] = args[1:]
+        elif update.startswith(OB_PREFIX):
+            if len(update) == 57:
+                context['cmd'] = 'show'
+                context['args']  = [update[1:33]]
+                context['premsgkey'] = update[33:]           
         return context
         
     async def proceed(self, context):
@@ -130,14 +150,29 @@ class telbotwrapper():
                 parse_mod = replyctx.get('parse_mod')
                 retexec = replyctx.get('retexec')
                 buttons = replyctx.get('buttons')
-                if retexec == 0:
-                    await event.respond('%s'%(msg),parse_mode=parse_mod, buttons = buttons)
-                else:
-                    await event.reply('command %s execute fail(%d): %s'%(cmd, retexec, msg),parse_mode=parse_mod)
+                isdel = replyctx.get('deleteEvent')
+                isstore = replyctx.get('cachemsg')
+                if retexec is not None:
+                    if retexec == 0:
+                        msg = '%s'%(msg)
+                        outmsg =  await event.respond(msg,parse_mode=parse_mod, buttons = buttons)
+                        if isstore is not None and isstore:
+                            self.msgcache[context.get('msgkey')] = outmsg
+                    else:
+                        await event.reply('command %s execute fail(%d): %s'%(cmd, retexec, msg),parse_mode=parse_mod)
+                if isdel is not None and isdel:
+                    await event.delete()
+                if replyctx.get('delpremsg') is not None and replyctx.get('delpremsg'):
+                    premsgkey = context.get('premsgkey')
+                    if premsgkey is not None:
+                        premsg = self.msgcache.get(premsgkey)
+                        if premsg is not None:
+                            await premsg.delete()
+                            self.msgcache.pop(premsgkey)
         else:
             await event.reply('command %s is not supported!'%(cmd))
 
-    @events.register(events.NewMessage(pattern=r'#[a-zA-Z]+[\s\S]*'))
+    @events.register(events.NewMessage(func=channelfilter, pattern=r'#[a-zA-Z]+[\s\S]*'))
     async def innercmdhandler(self, event):
         print(event.message.text)
         rtext = event.message.text
@@ -163,10 +198,15 @@ class telbotwrapper():
         dfile = event.message.file
         if dfile is not None:
             filename = dfile.name
+            islog = False
             if filename is None:
+                islog = True
                 filename = dfile.id + dfile.ext
+            self.downloadcache[filename] = dfile.size
             path = await self.client.download_media(event.message, self.storage, progress_callback=self.callback) 
-            self.log.debug('%s download to %s'%(filename, path))
+            if islog:
+                self.log.info('File %s download to %s'%(filename, path))
+            self.downloadcache.pop(filename)
             raise StopPropagation
     
     
